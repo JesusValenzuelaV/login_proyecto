@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const Usuario = require('./models/Usuario'); // CAMBIO MÍNIMO: modelo para listar/eliminar usuarios
 
 
 // ============================================================
@@ -110,6 +111,35 @@ app.get('/metrics', async (req, res) => {
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 app.use('/api/auth', authRoutes);
+
+// ============================================================
+// CAMBIO MÍNIMO - INICIO: endpoints que usa index.html
+// ============================================================
+app.get('/api/usuarios', async (req, res, next) => {
+  try {
+    const usuarios = await Usuario.find()
+      .select('nombres apellidos correo createdAt')
+      .sort({ createdAt: -1 });
+    res.json(usuarios);
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.delete('/api/usuarios/:id', async (req, res, next) => {
+  try {
+    const usuario = await Usuario.findByIdAndDelete(req.params.id);
+    if (!usuario) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+    res.json({ mensaje: 'Usuario eliminado correctamente' });
+  } catch (error) {
+    next(error);
+  }
+});
+// ============================================================
+// CAMBIO MÍNIMO - FIN
+// ============================================================
 
 app.use(express.static(path.join(__dirname, 'public')));
 
