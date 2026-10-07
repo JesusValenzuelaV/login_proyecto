@@ -86,16 +86,31 @@
     <form id="formUsuario">
 
         <input
-            id="nombre"
+            id="nombres"
             type="text"
-            placeholder="Nombre"
+            placeholder="Nombres"
             required
         >
 
         <input
-            id="email"
+            id="apellidos"
+            type="text"
+            placeholder="Apellidos"
+            required
+        >
+
+        <input
+            id="correo"
             type="email"
             placeholder="Correo electrónico"
+            required
+        >
+
+        <input
+            id="password"
+            type="password"
+            placeholder="Contraseña (mínimo 8 caracteres)"
+            minlength="8"
             required
         >
 
@@ -142,7 +157,7 @@ async function cargarUsuarios() {
 
             const datos = document.createElement("span");
             datos.textContent =
-                `${usuario.nombre} - ${usuario.email}`;
+                `${usuario.nombres} ${usuario.apellidos} - ${usuario.correo}`;
 
             const boton = document.createElement("button");
             boton.textContent = "Eliminar";
@@ -171,15 +186,16 @@ form.addEventListener("submit", async (event) => {
 
     event.preventDefault();
 
-    const nombre =
-        document.getElementById("nombre").value;
-
-    const email =
-        document.getElementById("email").value;
+    const nombres = document.getElementById("nombres").value;
+    const apellidos = document.getElementById("apellidos").value;
+    const correo = document.getElementById("correo").value;
+    const password = document.getElementById("password").value;
 
     try {
 
-        const respuesta = await fetch("/api/usuarios", {
+        // CAMBIO MÍNIMO: reutilizamos el registro que ya existe
+        // y que guarda correctamente passwordHash en Usuario.js.
+        const respuesta = await fetch("/api/auth/registro", {
 
             method: "POST",
 
@@ -188,8 +204,10 @@ form.addEventListener("submit", async (event) => {
             },
 
             body: JSON.stringify({
-                nombre,
-                email
+                nombres,
+                apellidos,
+                correo,
+                password
             })
 
         });
@@ -198,7 +216,7 @@ form.addEventListener("submit", async (event) => {
 
         if (!respuesta.ok) {
             throw new Error(
-                resultado.error || "Error registrando usuario"
+                resultado.mensaje || "Error registrando usuario"
             );
         }
 
@@ -206,13 +224,10 @@ form.addEventListener("submit", async (event) => {
             "Usuario registrado correctamente.";
 
         form.reset();
-
         cargarUsuarios();
 
     } catch (error) {
-
         mensaje.textContent = error.message;
-
     }
 
 });
